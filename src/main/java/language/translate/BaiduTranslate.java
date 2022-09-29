@@ -1,6 +1,8 @@
 package language.translate;
 
+import com.google.gson.Gson;
 import language.TranslationEngine;
+import language.entity.baidu.BaiduResponse;
 import language.utils.HttpGet;
 import language.utils.Md5;
 
@@ -64,11 +66,18 @@ public class BaiduTranslate implements TranslationEngine {
     @Override
     public String translate(String query, String sourceLanguage, String targetLanguage) {
         Map<String, String> params = buildParams(query, sourceLanguage, targetLanguage);
-        return HttpGet.get(TRANS_API_HOST, params);
+        Gson gson = new Gson();
+        BaiduResponse baiduResponse = gson.fromJson(HttpGet.get(TRANS_API_HOST, params), BaiduResponse.class);
+        return baiduResponse.getTrans_result().get(0).getDst();
     }
 
     public String translate(String query) {
+        if (targetLanguage == null) {
+            return null;
+        }
         Map<String, String> params = buildParams(query, sourceLanguage, targetLanguage);
-        return HttpGet.get(TRANS_API_HOST, params);
+        Gson gson = new Gson();
+        BaiduResponse baiduResponse = gson.fromJson(HttpGet.get(TRANS_API_HOST, params), BaiduResponse.class);
+        return baiduResponse.getTrans_result().get(0).getDst();
     }
 }

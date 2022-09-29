@@ -1,8 +1,5 @@
 package language.utils;
 
-import com.google.gson.Gson;
-import language.entity.baidu.BaiduResponse;
-
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -64,10 +61,8 @@ public class HttpGet {
             // 断开连接
             conn.disconnect();
 
-            String returnValue = builder.toString();
-            Gson gson = new Gson();
-            BaiduResponse baiduResponse = gson.fromJson(returnValue, BaiduResponse.class);
-            return baiduResponse.getTrans_result().get(0).getDst();
+
+            return builder.toString();
         } catch (KeyManagementException | NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();
         }
