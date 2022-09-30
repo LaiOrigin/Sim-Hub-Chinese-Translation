@@ -1,7 +1,9 @@
 package core;
 
+import language.TranslationEngine;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -20,10 +22,12 @@ import java.io.OutputStream;
  * @author Origin
  */
 public class XmlParsing {
+    private TranslationEngine translationEngine;
     private final File file;
     private DOMSource source;
 
-    public XmlParsing(File file) {
+    public XmlParsing(TranslationEngine translationEngine, File file) {
+        this.translationEngine = translationEngine;
         this.file = file;
     }
 
@@ -35,46 +39,27 @@ public class XmlParsing {
                     docFactory.newDocumentBuilder();
             Document doc = docBuilder.parse(file);
 
+            NodeList data = doc.getElementsByTagName("data"), childNodes;
+            int l = data.getLength();
+            Node dataItem, valueItem;
+            for (int i = 0; i < l; i++) {
+                dataItem = data.item(i);
+                childNodes = dataItem.getChildNodes();
+                System.out.println("LocalizationKey: " + dataItem.getAttributes().getNamedItem("name").getTextContent());
+                for (int v = 0; v < childNodes.getLength(); v++) {
+                    valueItem = childNodes.item(v);
+                    if (valueItem.getNodeType() == Node.ELEMENT_NODE) {
+                        Element e = (Element) valueItem;
 
-            NodeList carname = doc.getElementsByTagName("carname");
-            for (int i = 0; i < carname.getLength(); i++) {
-                Element e = (Element) carname.item(i);
-                e.setTextContent("test" + i);
-                System.out.println(e.getTextContent());
-            }
-
-            System.out.println("=====");
-            /*
-            Node cars = doc.getFirstChild();
-            Node supercar = doc.getElementsByTagName("supercars").item(0);
-            // update supercar attribute
-            NamedNodeMap attr = supercar.getAttributes();
-            Node nodeAttr = attr.getNamedItem("company");
-            nodeAttr.setTextContent("Lamborigini");
-
-            // loop the supercar child node
-            NodeList list = supercar.getChildNodes();
-            for (int temp = 0; temp < list.getLength(); temp++) {
-                Node node = list.item(temp);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    Element eElement = (Element) node;
-                    if ("carname".equals(eElement.getNodeName())) {
-                        if ("Ferrari 101".equals(eElement.getTextContent())) {
-                            eElement.setTextContent("Lamborigini 001");
-                        }
-                        if ("Ferrari 202".equals(eElement.getTextContent())) {
-                            eElement.setTextContent("Lamborigini 002");
-                        }
+                        String sourceStr = e.getTextContent();
+                        //防止api获取过频繁
+                        String translate = translationEngine.translate(sourceStr, "en", "zh");
+                        e.setTextContent(translate);
+                        System.out.println("DefaultValue: " + sourceStr + " -> " + translate);
+                        Thread.sleep(100);
                     }
                 }
             }
-            NodeList childNodes = cars.getChildNodes();
-            for (int count = 0; count < childNodes.getLength(); count++) {
-                Node node = childNodes.item(count);
-                if ("luxurycars".equals(node.getNodeName())) {
-                    cars.removeChild(node);
-                }
-            }*/
 
             //change
             this.source = new DOMSource(doc);
@@ -84,6 +69,26 @@ public class XmlParsing {
     }
 
     public void writeIn() {
+        if (source == null) {
+            System.out.println("请先转换");
+            return;
+        }
+        try {
+            OutputStream fos = new FileOutputStream(file);
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer();
+            StreamResult sr = new StreamResult(fos);
+            transformer.transform(source, sr);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeIn(File file) {
+        if (file == null) {
+            System.out.println("文件为null");
+            return;
+        }
         if (source == null) {
             System.out.println("请先转换");
             return;
