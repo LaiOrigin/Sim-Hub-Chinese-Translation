@@ -42,6 +42,12 @@ public class HttpGet {
             conn.setConnectTimeout(SOCKET_TIMEOUT);
             conn.setRequestMethod(GET);
             int statusCode = conn.getResponseCode();
+            /*if (statusCode == 500) {
+                conn.disconnect();
+                //无限重试
+                //从上午开始百度就抽风了，一直报500
+                return get(host, params);
+            }*/
             if (statusCode != HttpURLConnection.HTTP_OK) {
                 System.out.println("Http错误码：" + statusCode);
             }
